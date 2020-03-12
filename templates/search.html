@@ -1,0 +1,67 @@
+{% extends 'blog_list.html' %}
+{% load staticfiles %}
+
+{% block title %}
+    搜索
+{% endblock %}
+
+{% block blog_active %}
+    active
+{% endblock %}
+
+
+{% block content %}
+    <div class="container">
+        <div class="row">
+            <div class="col-xs-12 col-sm-10 col-md-10 col-lg-10 col-lg-offset-1 col-md-offset-1 col-sm-offset-1">
+                {# 博文#}
+                <div class="panel panel-default">
+                    <div class="panel-heading">搜索到 {{ count }} 篇文章</div>
+                    <div class="panel-body">
+                        {% for blog in page_obj.object_list %}
+                            <div class="blog">
+                                <a class="title" href="{% url 'blog_detail' blog.id %}">{{ blog.title }}</a>
+                                <p>
+                                    {{ blog.content|striptags|truncatechars_html:80 }}
+                                </p>
+                            </div>
+                        {% empty %}
+                            <div class="blog">
+                                <p>暂未搜索到相关内容，换个关键词继续搜索</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                {# 分页 #}
+                <nav aria-label="Page navigation">
+                    <ul class="pager">
+                        {% if page_obj.has_previous %}
+                            <li>
+                                <a href="?wd={{ search }}&page={{ page_obj.previous_page_number }}">
+                                    上一页
+                                </a>
+                            </li>
+                        {% endif %}
+
+                        {% for page in page_list %}
+                            {% if page == page_obj.number %}
+                                <li><span class="active">{{ page }}</span></li>
+                            {% else %}
+                                <li><a href="?wd={{ search }}&page={{ page }}">{{ page }}</a></li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if page_obj.has_next %}
+                            <li>
+                                <a href="?wd={{ search }}&page={{ page_obj.next_page_number }}">
+                                    下一页
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+{% endblock %}

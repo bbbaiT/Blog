@@ -1,0 +1,12 @@
+.text_content {
+    font-size: 222%;
+    text-align: center;
+    margin-top: 3em;
+    margin-bottom: 0.5em;
+}
+div#container {
+    margin: 0 auto;
+    min-width: 20em;
+    max-width: 50em;
+    height: 30em;
+}

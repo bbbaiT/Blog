@@ -1,0 +1,51 @@
+div.blog {
+    margin-top: 1em;
+    padding-bottom: 0.5em;
+}
+div.blog:not(:last-child) {
+    border-bottom: 1px solid #e2dede;
+}
+div.blog a.title {
+    font-size: 20px;
+}
+ul.blog_detail li{
+    display: inline-block;
+    margin-right: 3px;
+}
+h3.comment_title {
+    margin-top: 3px;
+}
+
+div.django-ckeditor-widget {
+    width: 100%;
+}
+ul.comment_list p{
+    margin: 0 0 0 1em;
+}
+ul.comment_list>li {
+    border-bottom: 1px inset #cccccc;
+}
+div#comment_content p{
+    margin-left: 1em;
+}
+div.replay {
+    margin-left: 2em;
+}
+div.like {
+    color: #337ab7;
+    margin: 2%;
+    display: initial;
+}
+div.like span{
+    cursor: pointer;
+}
+div.like.glyphicon {
+
+}
+div.like.active {
+    color: red !important;
+}
+div.like div.like_text{
+    display: inline;
+    margin-left: 10em;
+}

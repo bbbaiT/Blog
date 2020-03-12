@@ -1,0 +1,15 @@
+{% extends "blog_list.html" %}
+
+{% block title %}
+    {{ blog_type.type_name }}列表
+{% endblock %}
+
+{% block blog_active %}
+    active
+{% endblock %}
+
+{% block blog_panel_head %}
+    {{ blog_type.type_name }}分区(共有<b>{{ counts }}</b>篇文章)
+    <a href="{% url 'blog_list' %}">查看全部博文</a>
+{% endblock %}
+

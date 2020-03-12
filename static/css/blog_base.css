@@ -1,0 +1,16 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+ul {
+    list-style-type:none;
+}
+.unread_count,.unread {
+    color: red;
+}
+.search-form button[type="submit"]{
+    margin-left: -2.8em;
+    background: none;
+    border: none;
+    color: #aac;
+}

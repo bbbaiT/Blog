@@ -1,0 +1,32 @@
+{% extends 'blog_base.html' %}
+{% load staticfiles %}
+
+{% block title %}个人资料{% endblock %}
+
+{% block content %}
+    <div>
+        <h2>{{ user.username }}</h2>
+        <ul>
+            <li>昵称：
+                {{ user.nickname_or_username }}
+            </li>
+            <li>
+                邮箱：
+                {% if user.email %}
+                    {{ user.email }}
+                {% else %}
+                    未绑定
+                {% endif %}
+            </li>
+            <li>
+                最后登录时间：{{ user.last_login|date:"Y-m-d H:i:s" }}
+            </li>
+            <li>
+                加入时间：{{ user.date_joined|date:"Y-m-d" }}
+            </li>
+        </ul>
+        <a href="{% url 'modify_data' %}">修改资料</a>
+    </div>
+{% endblock %}
+
+

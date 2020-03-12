@@ -1,0 +1,303 @@
+{% extends "blog_base.html" %}
+{% load staticfiles %}
+{% load comment_tags %}
+{% load like_tags %}
+
+{% block title %}
+    {{ blog.title }}
+{% endblock %}
+
+{% block css %}
+    <link rel="stylesheet" href="{% static 'blog/css/blog.css' %}">
+{% endblock %}
+
+{% block js %}
+    <script type="text/javascript" src="{% static "ckeditor/ckeditor-init.js" %}"></script>
+    <script type="text/javascript" src="{% static "ckeditor/ckeditor/ckeditor.js" %}"></script>
+{% endblock %}
+
+{% block blog_active %}
+    active
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        {# 博文详情 #}
+        <div class="row">
+            <div class="col-xs-10 col-xs-offset-1">
+                <h3>{{ blog.title }}</h3>
+                <ul class="blog_detail">
+                    <li>发布者：{{ blog.user }}</li>
+                    <li>类型：<a href="{% url "blog_type" blog.blog_type_id %}">{{ blog.blog_type }}</a></li>
+                    <li>创建时间：{{ blog.create_time|date:"Y-m-d" }}</li>
+                    <li>阅读：{{ blog.read_num }}</li>
+                    <li>评论：{% comment_count blog %}</li>
+                </ul>
+                <p>{{ blog.content|safe }}</p>
+                {# 点赞数量 #}
+                <div class="like col-xs-offset-1 {% get_init_active blog %}" onclick="likechange(this, '{% get_content_type blog %}', {{ blog.id }})">
+                    <span class="glyphicon glyphicon-thumbs-up"></span>
+                    <span class="like_num">{% like_num blog %}</span>
+                </div>
+            </div>
+        </div>
+        {# 上一篇下一篇 #}
+        <div class="row">
+            <div class="col-xs-10 col-xs-offset-1">
+                <nav aria-label="Page navigation">
+                    <ul class="pager">
+                        {% if prev_blog %}
+                            <li class="previous"><a href="{% url 'blog_detail' prev_blog.id %}"><span class="glyphicon glyphicon-chevron-left"></span>{{ prev_blog.title }}</a></li>
+                        {% endif %}
+
+                        {% if next_blog %}
+                            <li class="next"><a href="{% url 'blog_detail' next_blog.id %}">{{ next_blog.title }}<span class="glyphicon glyphicon-chevron-right"></span></a></li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+        </div>
+        {# 评论 #}
+        <div class="row">
+            <div class="col-xs-10 col-xs-offset-1">
+                <h3 class="comment_title">评论区域</h3>
+                <div class="comment_body">
+                {# 回复时，显示评论的区域 #}
+                    <div id="comment_content_container" style="display: none">
+                        回复：
+                        <div id="comment_content"></div>
+                    </div>
+                {# 评论框 #}
+                    {% if user.is_authenticated %}
+                        <form id="comment_form">
+                            {% csrf_token %}
+                            {% comment_form blog as comment_form %}
+                            {% for field in comment_form %}
+                                {{ field }}
+                            {% endfor %}
+                            <span id="comment_error" class="pull-left text-danger" ></span>
+                            <input type="submit" class="btn btn-primary btn-md pull-right" value="评论">
+                        </form>
+                    {% else %}
+                        <div class="input-group">
+                            <div>
+                                <a href="{% url 'login_web' %}?from={{ request.get_full_path }}" style="color: dodgerblue">登录</a>
+                                /
+                                <a href="{% url 'register' %}?from={{ request.get_full_path }}" style="color: dodgerblue">注册</a>
+                                后才能评论哦，<span class="text-danger">(づ￣3￣)づ╭❤～</span>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="col-xs-10 col-xs-offset-1">
+                <h3 class="comment_title">评论列表</h3>
+                <div class="comment_body">
+                    <ul class="comment_list">
+                        <li id="comment_list"></li>
+                        {% comment_list blog as comment_list %}
+                        {% for comment in comment_list %}
+                            <li id="root_{{ comment.id }}">
+                                <div>
+                                    <span>{{ comment.user.nickname }}</span>
+                                    <span> ({{ comment.comment_time|date:"Y-m-d G:i:s" }}) :</span>
+                                    <span id="comment_{{ comment.id }}">{{ comment.text|safe }}</span>
+                                </div>
+                                <div class="like col-xs-offset-1 {% get_init_active comment %}" onclick="likechange(this, '{% get_content_type comment %}', {{ comment.id }})">
+                                    <span class="glyphicon glyphicon-thumbs-up"></span>
+                                    <span class="like_num">{% like_num comment %}</span>
+                                </div>
+                                <a href="javascript:replay({{ comment.id }})">回复</a>
+                                {% for replay in comment.root_comment.all %}
+                                    <div class="replay">
+                                        <span>{{ replay.user.nickname }}</span>
+                                        <span> ({{ replay.comment_time|date:"Y-m-d G:i:s" }}) </span>
+                                        <span> 回复 </span>
+                                        <span>{{ replay.user.nickname }}:</span>
+                                        <span id="comment_{{ replay.id }}">{{ replay.text|safe }}</span>
+                                        <div class="like col-xs-offset-1 {% get_init_active replay %}" onclick="likechange(this, '{% get_content_type replay %}', {{ replay.id }})">
+                                            <span class="glyphicon glyphicon-thumbs-up"></span>
+                                            <span class="like_num">{% like_num replay %}</span>
+                                        </div>
+                                        <a href="javascript:replay({{ replay.id }})">回复</a>
+                                    </div>
+                                {% endfor %}
+                            </li>
+                        {% empty %}
+                            <li id="comment_empty">
+                                <span>暂无评论，快来说几句吧。</span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block script %}
+    <script type="text/javascript">
+        // 字符串格式化
+        String.prototype.format = function(args) {
+            var result = this;
+            if (arguments.length > 0) {
+                if (arguments.length == 1 && typeof (args) == "object") {
+                    for (var key in args) {
+                        if(args[key]!=undefined){
+                            var reg = new RegExp("({" + key + "})", "g");
+                            result = result.replace(reg, args[key]);
+                        }
+                    }
+                }
+                else {
+                    for (var i = 0; i < arguments.length; i++) {
+                        if (arguments[i] != undefined) {
+                            //var reg = new RegExp("({[" + i + "]})", "g");//这个在索引大于9时会有问题
+                            var reg = new RegExp("({)" + i + "(})", "g");
+                            result = result.replace(reg, arguments[i]);
+                        }
+                    }
+                }
+            }
+            return result;
+        };
+        // 回复动画跳转
+        function replay(replay_id) {
+            // 让回复的值改变
+            $('#replay_id').val(replay_id);
+            // 获取回复评论的内容
+            var html = $('#comment_' + replay_id).html();
+            // 将内容写到编辑框上面
+            $('#comment_content').html(html).show();
+            $('#comment_content_container').show();
+            // 动画滑到编辑框处
+            $('html').animate({
+                scrollop: $('#comment_form').offset().top - 50
+            }, 300, function() {
+                CKEDITOR.instances['id_text'].focus();
+            });
+            return false
+        }
+        // 日期显示两位
+        function numformat(num){
+            return ('00' + num).substr(-2);
+        }
+        // 格式化时间
+        function TimeFormat(timestamp) {
+            var datetime = new Date(timestamp * 1000);
+            var year = datetime.getFullYear();
+            var month = numformat(datetime.getMonth() +1);
+            var day = numformat(datetime.getDate());
+            var hour = numformat(datetime.getHours());
+            var minute = numformat(datetime.getMinutes());
+            var second = numformat(datetime.getSeconds());
+            return year + '-' + month + '-' + day + ' ' + hour + ':' + minute + ':' + second;
+        }
+        // 评论提交
+        $('#comment_form').submit(function(){
+            // 将错误信息重置
+            $('#comment_error').text('');
+            // 检测评论框里是否为空
+            if(CKEDITOR.instances['id_text'].document.getBody().getText().trim()==''){
+                $('#comment_error').text('评论内容不得为空');
+                return false
+            }
+
+            // 更新内容到textarea内
+            CKEDITOR.instances['id_text'].updateElement();
+
+            // 提交评论
+            $.ajax({
+                url: '{% url 'update_comment' %}',
+                type: 'POST',
+                data: $(this).serialize(),
+                cache: false,
+                success: function(data) {
+                    if (data['status'] == 0){
+                        // 显示评论内容
+                            if($('#replay_id').val()==0){
+                                // 评论
+                                var comment_html_before =
+                                    '<div>' +
+                                        '<span>{name}</span>' +
+                                        '<span> ({time}) :</span>' +
+                                        '<span id="comment_{id}">{text}</span>' +
+                                    '</div>' +
+                                    '<div class="like col-xs-offset-1" onclick="likechange(this, \'{type_}\', {id})">' +
+                                        '<span class="glyphicon glyphicon-thumbs-up"></span>' +
+                                        '<span class="like_num">0</span>' +
+                                    '</div>' +
+                                    '<a href="javascript:replay({id})">回复</a>';
+                                    var comment_html = comment_html_before.format({name:data['user'], time:TimeFormat(data['comment_time']), id:data['id'], text:data['text'], type_:data['content_type']});
+                                $('#comment_list').prepend(comment_html);
+                            }else{
+                                var replay_html_before =
+                                    '<div class="replay">' +
+                                        '<span>{replay_name}</span>' +
+                                        '<span> ({time}) </span>' +
+                                        '<span> 回复 </span>' +
+                                        '<span>{to}:</span>' +
+                                        '<span id="comment_{id}">{text}</span>' +
+                                        '<div class="like col-xs-offset-1" onclick="likechange(this, \'{type_}\', {id})">' +
+                                            '<span class="glyphicon glyphicon-thumbs-up"></span>' +
+                                            '<span class="like_num">0</span>' +
+                                        '</div>' +
+                                        '<a href="javascript:replay({id})">回复</a>' +
+                                    '</div>';
+                                var replay_html = replay_html_before.format({replay_name:data['user'], time:TimeFormat(data['comment_time']), to:data['replay_to'], id:data['id'], text:data['text'], type_:data['content_type']});
+                                $('#root_'+data['root_id']).append(replay_html);
+                            }
+                            CKEDITOR.instances['id_text'].setData('');
+                            $('#comment_error').text('评论成功');
+                            $('#comment_empty').remove();
+                    }
+                    else{
+                        $('#comment_error').text(data['message']);
+                    }
+                },
+                error: function (xhr) {
+                    console.log(xhr)
+                }
+            });
+            // 拦截提交操作，使用上面的ajax提交
+            return false
+        });
+        // 点赞提交
+        function likechange(obj, content_type, object_id) {
+            var is_like = obj.classList.contains('active');
+            // 点赞
+            $.ajax({
+                url: "{% url 'update_like_num' %}",
+                type: 'GET',
+                data:{
+                    content_type: content_type,
+                    object_id: object_id,
+                    is_like: is_like
+                },
+                cache : false,
+                success:function(data) {
+                    if(data['status'] == 201){
+                        obj.classList.add('active');
+                    }
+                    else if(data['status'] == 202){
+                        obj.classList.remove('active');
+                    }
+                    else if(data['status']==403){
+                        $('#login_modal_div').modal('show');
+                    }
+                    $(obj.getElementsByClassName('like_num')).text(data['like_num'])
+                },
+                error:function(xhr){
+                    console.log(xhr)
+                }
+            });
+        }
+        {# 通知跳转到博客页面指定一条评论处的动画 #}
+        if (window.location.hash){
+            $('html').animate({
+                scrollop: $(window.location.hash).offset().top - 50
+            }, 500);
+        }
+    </script>
+{% endblock %}

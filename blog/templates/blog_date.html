@@ -1,0 +1,14 @@
+{% extends "blog_type.html" %}
+
+{% block title %}
+    {{ blog_date }}的博文
+{% endblock %}
+
+{% block blog_active %}
+    active
+{% endblock %}
+
+{% block blog_panel_head %}
+    {{ blog_date }}年的博文(共有<b>{{ counts }}</b>篇文章)
+    <a href="{% url 'blog_list' %}">查看全部博文</a>
+{% endblock %}

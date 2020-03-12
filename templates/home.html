@@ -1,0 +1,132 @@
+{% extends 'blog_base.html' %}
+{% load staticfiles %}
+
+{% block title %}
+    我的网站|首页
+{% endblock %}
+
+{% block css %}
+    <link rel="stylesheet" href="{% static '/css/home.css' %}">
+{% endblock %}
+{% block js %}
+    <script type="text/javascript" src="https://code.highcharts.com.cn/highcharts/highcharts.js"></script>
+{% endblock %}
+
+{% block home_active %}
+    active
+{% endblock %}
+
+{% block content %}
+    <h2 class="text_content">欢迎来到网站</h2>
+    <div id="container"></div>
+
+    <div class="container">
+        <div class="row">
+
+            <div class="col-xs-3 col-sm-3 col-md-3 col-lg-3">
+                <div class="panel panel-default">
+                    <div class="panel-heading">今日热读博文</div>
+                    <div class="panel-body">
+                        <ul>
+                            {% for blog in today_hot_blog %}
+                                <li><a href="{% url 'blog_detail' blog.id %}">{{ blog.title }}</a></li>
+                            {% empty %}
+                                <li>暂无热读博文</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xs-3 col-sm-3 col-md-3 col-lg-3">
+                <div class="panel panel-default">
+                    <div class="panel-heading">前7天热读博文</div>
+                    <div class="panel-body">
+                        <ul>
+                            {% for blog in week_hot_blog %}
+                                <li><a href="{% url 'blog_detail' blog.id %}">{{ blog.title }}</a></li>
+                            {% empty %}
+                                <li>暂无热读博文</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xs-3 col-sm-3 col-md-3 col-lg-3">
+                <div class="panel panel-default">
+                    <div class="panel-heading">前1月热读博文</div>
+                    <div class="panel-body">
+                        <ul>
+                            {% for blog in month_hot_blog %}
+                                <li><a href="{% url 'blog_detail' blog.id %}">{{ blog.title }}</a></li>
+                            {% empty %}
+                                <li>暂无热读博文</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xs-3 col-sm-3 col-md-3 col-lg-3">
+                <div class="panel panel-default">
+                    <div class="panel-heading">前1年热读博文</div>
+                    <div class="panel-body">
+                        <ul>
+                            {% for blog in year_hot_blog %}
+                                <li><a href="{% url 'blog_detail' blog.id %}">{{ blog.title }}</a></li>
+                            {% empty %}
+                                <li>暂无热读博文</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <script>
+        {# 图表显示 #}
+        var chart = Highcharts.chart('container', {
+            chart: {
+                type: 'line'
+            },
+            title: {
+                text: null
+            },
+            xAxis: {
+                categories: {{ date_list|safe }}
+            },
+            yAxis:{
+                title:{
+                    text: null
+                },
+                gridLineDashStyle:'Dash',
+                labels:{enabled:false}
+            },
+            plotOptions: {
+                line: {
+                    dataLabels: {
+                        // 开启数据标签
+                        enabled: true
+                    }
+                },
+                enableMouseTracking: false,
+                // 图例不可点击
+                series: {
+                    events: {
+                        legendItemClick: function(e) {
+                            return false; // 直接 return false 即可禁用图例点击事件
+                        }
+                    }
+                }
+            },
+            series: [{
+                name: '阅读量',
+                data: {{ read_num_list|safe }}
+            }],
+            credits:{enabled:false},
+            exporting:{enabled:false}
+        });
+    </script>
+{% endblock %}
